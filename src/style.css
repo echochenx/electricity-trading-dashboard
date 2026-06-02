@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+:root {
+  /* 电力市场主题色系 - 参考GitHub干净排版，融入电力行业色调 */
+  --color-canvas-default: #ffffff;
+  --color-canvas-subtle: #f6f8fa;
+  --color-fg-default: #1a2332;
+  --color-fg-muted: #57606a;
+  --color-fg-subtle: #6e7781;
+
+  /* 主色：电力蓝 */
+  --color-accent-fg: #2563eb;
+  --color-accent-emphasis: #2563eb;
+
+  /* 电力行业色 */
+  --color-power-blue: #1e40af;
+  --color-power-teal: #0d9488;
+  --color-power-yellow: #eab308;
+  --color-power-green: #16a34a;
+  --color-power-orange: #ea580c;
+  --color-power-red: #dc2626;
+
+  --color-border-default: #e2e8f0;
+  --color-border-muted: #e8ecf1;
+  --color-header-gradient-from: #0f172a;
+  --color-header-gradient-to: #1e3a5f;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, 'PingFang HK', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  background: var(--color-canvas-default);
+  color: var(--color-fg-default);
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+a {
+  color: var(--color-accent-fg);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-muted);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-fg-muted);
+}
