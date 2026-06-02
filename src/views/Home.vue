@@ -218,13 +218,13 @@ const chartOption = computed(() => ({
       </div>
     </div>
 
-    <!-- ==================== 下半部分：策略数据速览 ==================== -->
+    <!-- ==================== 下半部分：售电公司模拟交易策略数据预览 ==================== -->
     <div>
       <h2 class="text-[15px] font-semibold text-[#1a2332] mb-4 flex items-center gap-2">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
         </svg>
-        策略数据速览
+        售电公司模拟交易策略数据预览
       </h2>
 
       <!-- 指标卡 -->
@@ -253,7 +253,7 @@ const chartOption = computed(() => ({
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
           </svg>
-          策略决策框架
+          售电公司模拟交易策略决策框架
         </h3>
         <div class="grid grid-cols-3 gap-5">
           <div class="bg-[#f8fafc] rounded-lg border border-[#e2e8f0] p-5">
@@ -273,9 +273,9 @@ const chartOption = computed(() => ({
           <div class="bg-[#f8fafc] rounded-lg border border-[#e2e8f0] p-5">
             <div class="flex items-center gap-2 mb-2">
               <span class="w-6 h-6 rounded-full bg-[#7c3aed] text-white text-[11px] font-bold flex items-center justify-center">3</span>
-              <span class="text-[14px] font-semibold text-[#1a2332]">偏移量计算</span>
+              <span class="text-[14px] font-semibold text-[#1a2332]">负荷预测及偏移量计算</span>
             </div>
-            <p class="text-[13px] text-[#64748b] leading-relaxed">分档scale系数叠加置信度lambda，在方向对时盈利、方向错时控损</p>
+            <p class="text-[13px] text-[#64748b] leading-relaxed">基于预测负荷叠加方向偏移量得到报量，报量与实际负荷的差异决定最终盈亏</p>
           </div>
         </div>
       </div>
