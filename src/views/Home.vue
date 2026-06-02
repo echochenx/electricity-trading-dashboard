@@ -53,13 +53,13 @@ const maxRateMonth = backtestData.months[backtestData.achievement_rate.indexOf(m
 const totalProfit = backtestData.strategy_profit.reduce((a, b) => a + b, 0)
 
 const stats = [
-  { label: '回测周期', value: '15个月', sub: '2025.01 - 2026.03' },
-  { label: '盈利月份', value: `${profitMonths}/15`, sub: `达成率 ${(profitMonths/15*100).toFixed(1)}%` },
+  { label: '数据周期', value: '15个月', sub: '2025.01 - 2026.03' },
+  { label: '盈利月占比', value: `${profitMonths}/15`, sub: `${(profitMonths/15*100).toFixed(1)}%` },
   { label: '最高达成率', value: `${maxRate.toFixed(2)}%`, sub: maxRateMonth },
-  { label: '累计策略收益', value: `${(totalProfit / 10000).toFixed(0)}万`, sub: 'V16.4回测' },
+  { label: '累计策略收益', value: `${(totalProfit / 10000).toFixed(0)}万`, sub: '最新策略表现' },
 ]
 
-// 月度收益达成率图表配置
+// 月度关键数据表现图表配置
 const chartOption = computed(() => ({
   tooltip: {
     trigger: 'axis',
@@ -71,9 +71,8 @@ const chartOption = computed(() => ({
       const month = params[0].axisValue
       let html = `<div style="font-weight:600;margin-bottom:4px">${month}</div>`
       params.forEach(p => {
-        const color = p.color
         const val = p.seriesName === '策略收益' ? `${(p.value / 10000).toFixed(1)}万` : `${p.value.toFixed(2)}%`
-        html += `<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${color}"></span>${p.seriesName}: ${val}</div>`
+        html += `<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${p.color}"></span>${p.seriesName}: ${val}</div>`
       })
       return html
     }
@@ -152,7 +151,6 @@ const chartOption = computed(() => ({
   <div class="space-y-8">
     <!-- Hero区域 -->
     <div class="bg-gradient-to-br from-[#0f172a] via-[#1e3a5f] to-[#0f172a] rounded-2xl p-10 text-white relative overflow-hidden">
-      <!-- 背景装饰：输电线路 -->
       <div class="absolute inset-0 opacity-[0.06]">
         <svg width="100%" height="100%" viewBox="0 0 800 200" preserveAspectRatio="none">
           <line x1="0" y1="60" x2="800" y2="60" stroke="white" stroke-width="1"/>
@@ -175,104 +173,110 @@ const chartOption = computed(() => ({
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
           </svg>
-          <h1 class="text-[28px] font-bold tracking-tight">售电交易模拟策略平台</h1>
+          <h1 class="text-[28px] font-bold tracking-tight">售电交易模拟平台</h1>
         </div>
-        <p class="text-[#94a3b8] text-[15px] max-w-[600px] leading-relaxed">
-          基于广东电力现货市场数据，模拟售电公司"报量不报价"模式下的交易决策。通过负荷预测、DART方向判断与置信度评分，实现报量偏移策略的自动化决策。
+        <p class="text-[#94a3b8] text-[15px] max-w-[640px] leading-relaxed">
+          学习售电知识，模拟交易决策，洞察市场规律。从知识到实践，理解广东电力现货市场的运行逻辑。
         </p>
-        <div class="flex gap-3 mt-6">
-          <router-link to="/simulation" class="inline-flex items-center gap-2 px-5 py-2 bg-[#eab308] text-[#0f172a] rounded-lg text-[14px] font-semibold no-underline hover:bg-[#facc15] transition-colors">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-            </svg>
-            开始模拟
-          </router-link>
-          <router-link to="/knowledge" class="inline-flex items-center gap-2 px-5 py-2 border border-[#475569] text-[#cbd5e1] rounded-lg text-[14px] no-underline hover:bg-white/5 transition-colors">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-            </svg>
-            了解市场
-          </router-link>
-        </div>
       </div>
     </div>
 
-    <!-- 核心数据 -->
-    <div class="grid grid-cols-4 gap-5">
-      <div v-for="stat in stats" :key="stat.label" class="bg-white rounded-xl border border-[#e2e8f0] p-5">
-        <div class="text-[12px] text-[#94a3b8] mb-1">{{ stat.label }}</div>
-        <div class="text-[22px] font-bold text-[#1a2332]">{{ stat.value }}</div>
-        <div class="text-[12px] text-[#94a3b8] mt-0.5">{{ stat.sub }}</div>
+    <!-- ==================== 上半部分：功能导航 ==================== -->
+    <div>
+      <h2 class="text-[15px] font-semibold text-[#1a2332] mb-4 flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+        功能导航
+      </h2>
+      <div class="grid grid-cols-3 gap-6">
+        <router-link
+          v-for="(m, i) in modules"
+          :key="m.path"
+          :to="m.path"
+          class="group bg-white rounded-xl border border-[#e2e8f0] p-6 no-underline hover:shadow-lg hover:border-[#cbd5e1] transition-all relative"
+        >
+          <!-- 步骤序号 -->
+          <span class="absolute top-3 right-4 text-[11px] text-[#cbd5e1] font-medium">0{{ i + 1 }}</span>
+          <div class="w-11 h-11 rounded-lg flex items-center justify-center mb-4" :style="{ backgroundColor: m.bgColor }">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" :stroke="m.color" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path :d="m.icon"/>
+            </svg>
+          </div>
+          <h3 class="text-[16px] font-semibold text-[#1a2332] mb-2 group-hover:text-[#2563eb] transition-colors">{{ m.name }}</h3>
+          <p class="text-[13px] text-[#64748b] leading-relaxed mb-4">{{ m.description }}</p>
+          <div class="flex flex-wrap gap-1.5">
+            <span v-for="item in m.items" :key="item" class="px-2 py-0.5 rounded text-[11px] text-[#64748b] border border-[#e2e8f0]">{{ item }}</span>
+          </div>
+          <div class="mt-4 flex items-center gap-1 text-[12px] text-[#94a3b8] group-hover:text-[#2563eb] transition-colors">
+            <span>进入</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </div>
+        </router-link>
       </div>
     </div>
 
-    <!-- 月度收益图表 -->
-    <div class="bg-white rounded-xl border border-[#e2e8f0] p-6">
-      <h3 class="text-[15px] font-semibold text-[#1a2332] mb-4 flex items-center gap-2">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+    <!-- ==================== 下半部分：策略数据速览 ==================== -->
+    <div>
+      <h2 class="text-[15px] font-semibold text-[#1a2332] mb-4 flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
         </svg>
-        V16.4 月度回测表现
-      </h3>
-      <VChart :option="chartOption" style="height: 300px" autoresize />
-    </div>
+        策略数据速览
+      </h2>
 
-    <!-- 模块卡片 -->
-    <div class="grid grid-cols-3 gap-6">
-      <router-link
-        v-for="m in modules"
-        :key="m.path"
-        :to="m.path"
-        class="group bg-white rounded-xl border border-[#e2e8f0] p-6 no-underline hover:shadow-lg hover:border-[#cbd5e1] transition-all"
-      >
-        <div class="w-11 h-11 rounded-lg flex items-center justify-center mb-4" :style="{ backgroundColor: m.bgColor }">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" :stroke="m.color" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path :d="m.icon"/>
-          </svg>
+      <!-- 指标卡 -->
+      <div class="grid grid-cols-4 gap-5 mb-5">
+        <div v-for="stat in stats" :key="stat.label" class="bg-white rounded-xl border border-[#e2e8f0] p-5">
+          <div class="text-[12px] text-[#94a3b8] mb-1">{{ stat.label }}</div>
+          <div class="text-[22px] font-bold text-[#1a2332]">{{ stat.value }}</div>
+          <div class="text-[12px] text-[#94a3b8] mt-0.5">{{ stat.sub }}</div>
         </div>
-        <h3 class="text-[16px] font-semibold text-[#1a2332] mb-2 group-hover:text-[#2563eb] transition-colors">{{ m.name }}</h3>
-        <p class="text-[13px] text-[#64748b] leading-relaxed mb-4">{{ m.description }}</p>
-        <div class="flex flex-wrap gap-1.5">
-          <span v-for="item in m.items" :key="item" class="px-2 py-0.5 rounded text-[11px] text-[#64748b] border border-[#e2e8f0]">{{ item }}</span>
-        </div>
-        <div class="mt-4 flex items-center gap-1 text-[12px] text-[#94a3b8] group-hover:text-[#2563eb] transition-colors">
-          <span>进入</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 18l6-6-6-6"/>
-          </svg>
-        </div>
-      </router-link>
-    </div>
+      </div>
 
-    <!-- 策略架构 -->
-    <div class="bg-white rounded-xl border border-[#e2e8f0] p-6">
-      <h3 class="text-[15px] font-semibold text-[#1a2332] mb-4 flex items-center gap-2">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-        </svg>
-        三层决策架构
-      </h3>
-      <div class="grid grid-cols-3 gap-5">
-        <div class="bg-[#f8fafc] rounded-lg border border-[#e2e8f0] p-5">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="w-6 h-6 rounded-full bg-[#0d9488] text-white text-[11px] font-bold flex items-center justify-center">1</span>
-            <span class="text-[14px] font-semibold text-[#1a2332]">参考日选取</span>
+      <!-- 月度关键数据表现 -->
+      <div class="bg-white rounded-xl border border-[#e2e8f0] p-6 mb-5">
+        <h3 class="text-[14px] font-semibold text-[#1a2332] mb-4 flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+          </svg>
+          月度关键数据表现
+        </h3>
+        <VChart :option="chartOption" style="height: 300px" autoresize />
+      </div>
+
+      <!-- 决策框架 -->
+      <div class="bg-white rounded-xl border border-[#e2e8f0] p-6">
+        <h3 class="text-[14px] font-semibold text-[#1a2332] mb-4 flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          策略决策框架
+        </h3>
+        <div class="grid grid-cols-3 gap-5">
+          <div class="bg-[#f8fafc] rounded-lg border border-[#e2e8f0] p-5">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-6 h-6 rounded-full bg-[#0d9488] text-white text-[11px] font-bold flex items-center justify-center">1</span>
+              <span class="text-[14px] font-semibold text-[#1a2332]">参考日选取</span>
+            </div>
+            <p class="text-[13px] text-[#64748b] leading-relaxed">基于历史相似日匹配，结合special日期范围，选取最佳参考日期组合</p>
           </div>
-          <p class="text-[13px] text-[#64748b] leading-relaxed">基于历史相似日匹配，结合special日期范围，选取最佳参考日期组合</p>
-        </div>
-        <div class="bg-[#f8fafc] rounded-lg border border-[#e2e8f0] p-5">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="w-6 h-6 rounded-full bg-[#2563eb] text-white text-[11px] font-bold flex items-center justify-center">2</span>
-            <span class="text-[14px] font-semibold text-[#1a2332]">DART方向判断</span>
+          <div class="bg-[#f8fafc] rounded-lg border border-[#e2e8f0] p-5">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-6 h-6 rounded-full bg-[#2563eb] text-white text-[11px] font-bold flex items-center justify-center">2</span>
+              <span class="text-[14px] font-semibold text-[#1a2332]">DART方向判断</span>
+            </div>
+            <p class="text-[13px] text-[#64748b] leading-relaxed">多参考日投票机制决定负荷偏差方向，置信度评分衡量判断可靠性</p>
           </div>
-          <p class="text-[13px] text-[#64748b] leading-relaxed">多参考日投票机制决定负荷偏差方向，置信度评分衡量判断可靠性</p>
-        </div>
-        <div class="bg-[#f8fafc] rounded-lg border border-[#e2e8f0] p-5">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="w-6 h-6 rounded-full bg-[#7c3aed] text-white text-[11px] font-bold flex items-center justify-center">3</span>
-            <span class="text-[14px] font-semibold text-[#1a2332]">偏移量计算</span>
+          <div class="bg-[#f8fafc] rounded-lg border border-[#e2e8f0] p-5">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-6 h-6 rounded-full bg-[#7c3aed] text-white text-[11px] font-bold flex items-center justify-center">3</span>
+              <span class="text-[14px] font-semibold text-[#1a2332]">偏移量计算</span>
+            </div>
+            <p class="text-[13px] text-[#64748b] leading-relaxed">分档scale系数叠加置信度lambda，在方向对时盈利、方向错时控损</p>
           </div>
-          <p class="text-[13px] text-[#64748b] leading-relaxed">分档scale系数叠加置信度lambda，在方向对时盈利、方向错时控损</p>
         </div>
       </div>
     </div>
