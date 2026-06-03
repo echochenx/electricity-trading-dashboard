@@ -302,7 +302,7 @@ const historyStats = computed(() => {
 
           <!-- 三层递进：预测负荷 → DART方向 → 偏移量 → 申报电量 -->
           <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-5 mb-5">
-            <h4 class="text-[13px] font-semibold text-[#1a2332] mb-3">报量决策流程</h4>
+            <h4 class="text-[13px] font-semibold text-[#1a2332] mb-3">当前策略报量决策流程</h4>
             <div class="grid grid-cols-4 gap-3 mb-4">
               <!-- Step 1: 预测负荷 -->
               <div class="bg-white rounded-lg p-3 border border-[#e2e8f0]">
@@ -318,7 +318,7 @@ const historyStats = computed(() => {
                   <span class="w-5 h-5 rounded-full bg-[#2563eb] text-white text-[10px] font-bold flex items-center justify-center">2</span>
                   <span class="text-[12px] font-semibold">DART方向判断</span>
                 </div>
-                <p class="text-[11px] text-[#64748b]">多参考日投票决定偏移方向，一致比例即置信度（当前日{{ daySummary.confidence || '--' }}%）</p>
+                <p class="text-[11px] text-[#64748b]">3个参考日投票决定偏移方向，投票越一致说明方向越可靠（当前日{{ daySummary.confidence || '--' }}%一致）</p>
               </div>
               <!-- Step 3: 偏移量 -->
               <div class="bg-white rounded-lg p-3 border border-[#e2e8f0]">
@@ -345,10 +345,11 @@ const historyStats = computed(() => {
                 <span class="text-[12px] font-semibold text-[#1a2332]">当前售电公司策略说明</span>
               </div>
               <div class="text-[11px] text-[#64748b] space-y-1.5 leading-relaxed">
-                <p><strong class="text-[#1a2332]">投票机制</strong>：选取7天前、4周前、1年前三个参考日，计算各自DART方向，多数一致即为预测方向，一致比例为置信度。</p>
-                <p><strong class="text-[#1a2332]">置信度lambda</strong>：方向一致度越高(>0.8)，偏移力度越大；方向分裂(<0.5)则不偏移。实现"确定时进取、不确定时保守"。</p>
+                <p><strong class="text-[#1a2332]">投票机制</strong>：选取7天前、4周前、1年前三个参考日，计算各自DART方向，多数一致即为预测方向，投票越一致方向越可靠，这个一致程度就是置信度。</p>
+                <p><strong class="text-[#1a2332]">置信度lambda</strong>：3个参考日全投同一边=100%置信度，偏移力度最大；2:1分裂=67%，适度偏移；各投各的=低置信度，不偏移。实现"确定时进取、不确定时保守"。</p>
                 <p><strong class="text-[#1a2332]">分档scale</strong>：按|DART|大小分5档(5-20元/MWh)，DART越大偏移越大，捕捉大幅价差机会。</p>
                 <p class="text-[#ea580c]"><strong>核心教训</strong>：加大偏移力度(scale 1.0→1.1)在方向对时多赚一点，但方向错时多亏更多，净效果为负。优先"减少错误时亏损"而非"增加正确时盈利"。</p>
+                <p class="text-[#94a3b8] italic">当前采用规则+投票机制而非机器学习，是因为售电市场仍处发展前期，历史数据量不足以支撑海量数据驱动的预测模型，规则机制是现阶段更务实的选择。</p>
               </div>
             </div>
           </div>
@@ -361,8 +362,9 @@ const historyStats = computed(() => {
               <div class="text-[11px] text-[#94a3b8]">正{{ daySummary.dartPositive }}/负{{ daySummary.dartNegative }}</div>
             </div>
             <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
-              <div class="text-[11px] text-[#94a3b8] mb-1">置信度</div>
+              <div class="text-[11px] text-[#94a3b8] mb-1">投票一致度(置信度)</div>
               <div class="text-[18px] font-bold" :class="daySummary.confidence > 60 ? 'text-[#16a34a]' : 'text-[#ea580c]'">{{ daySummary.confidence }}%</div>
+              <div class="text-[11px] text-[#94a3b8]">{{ daySummary.confidence >= 80 ? '高度一致，可大胆偏移' : daySummary.confidence >= 60 ? '方向较一致，适度偏移' : '方向分裂，谨慎为好' }}</div>
             </div>
             <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
               <div class="text-[11px] text-[#94a3b8] mb-1">日申报电量</div>
@@ -378,8 +380,58 @@ const historyStats = computed(() => {
             </div>
           </div>
 
-          <VChart v-if="dayData.length" :option="decisionChartOption" style="height: 280px" autoresize />
+          <VChart v-if="dayData.length" :option="decisionChartOption" style="height: 280px" class="mb-5" autoresize />
           <div v-else class="text-center text-[14px] text-[#94a3b8] py-10">该日期暂无数据</div>
+
+          <!-- 收益计算器（报量时推演收益变化） -->
+          <div v-if="dayData.length" class="bg-[#eff6ff] rounded-xl border border-[#bfdbfe] p-6">
+            <div class="flex items-center gap-2 mb-4">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>
+              <span class="text-[14px] font-semibold text-[#1e3a5f]">报量推演器</span>
+              <span class="text-[11px] text-[#64748b]">调整偏移比例，推演不同申报量的收益变化</span>
+            </div>
+            <div class="grid grid-cols-2 gap-x-6 gap-y-3 mb-5">
+              <div>
+                <label class="text-[12px] text-[#64748b] mb-1 block">预测负荷 (MW)</label>
+                <input v-model.number="calc.forecastLoad" type="number" class="w-full px-3 py-1.5 text-[13px] rounded-lg border border-[#bfdbfe] bg-white focus:outline-none focus:border-[#2563eb]" />
+              </div>
+              <div>
+                <label class="text-[12px] text-[#64748b] mb-1 block">偏移比例 (%)</label>
+                <input v-model.number="calc.offsetPct" type="range" min="0" max="30" step="1" class="w-full accent-[#2563eb]" />
+                <div class="text-[12px] text-[#2563eb] text-center">{{ calc.offsetPct }}%</div>
+              </div>
+              <div>
+                <label class="text-[12px] text-[#64748b] mb-1 block">合同电价 (元/MWh)</label>
+                <input v-model.number="calc.contractPrice" type="number" class="w-full px-3 py-1.5 text-[13px] rounded-lg border border-[#bfdbfe] bg-white focus:outline-none focus:border-[#2563eb]" />
+              </div>
+              <div>
+                <label class="text-[12px] text-[#64748b] mb-1 block">日前电价 (元/MWh)</label>
+                <input v-model.number="calc.dayAheadPrice" type="number" class="w-full px-3 py-1.5 text-[13px] rounded-lg border border-[#bfdbfe] bg-white focus:outline-none focus:border-[#2563eb]" />
+              </div>
+              <div>
+                <label class="text-[12px] text-[#64748b] mb-1 block">实时电价 (元/MWh)</label>
+                <input v-model.number="calc.realtimePrice" type="number" class="w-full px-3 py-1.5 text-[13px] rounded-lg border border-[#bfdbfe] bg-white focus:outline-none focus:border-[#2563eb]" />
+              </div>
+            </div>
+            <div class="bg-white rounded-lg border border-[#bfdbfe] p-4 space-y-2.5">
+              <div class="flex justify-between text-[13px]">
+                <span class="text-[#64748b]">DART</span>
+                <span :class="calcResults.dart > 0 ? 'text-[#dc2626]' : 'text-[#0d9488]'">{{ calcResults.dart.toFixed(0) }} 元/MWh ({{ calcResults.direction }})</span>
+              </div>
+              <div class="flex justify-between text-[13px]">
+                <span class="text-[#64748b]">报量</span>
+                <span class="text-[#1a2332] font-medium">{{ calcResults.reportQty }} MW</span>
+              </div>
+              <div class="flex justify-between text-[13px]">
+                <span class="text-[#64748b]">偏差率</span>
+                <span :class="parseFloat(calcResults.deviationRate) > LAMBDA_0*100 ? 'text-[#dc2626]' : 'text-[#1a2332]'">{{ calcResults.deviationRate }}%{{ parseFloat(calcResults.deviationRate) > LAMBDA_0*100 ? ' (超阈值，有考核)' : '' }}</span>
+              </div>
+              <div class="border-t border-[#e2e8f0] pt-2.5 flex justify-between text-[14px]">
+                <span class="text-[#64748b] font-medium">策略增量收益</span>
+                <span class="font-bold" :class="calcResults.incremental >= 0 ? 'text-[#16a34a]' : 'text-[#dc2626]'">{{ calcResults.incrementalStr }}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- ====== 2. 日收益 ====== -->
@@ -471,56 +523,6 @@ const historyStats = computed(() => {
                     </tr>
                   </tbody>
                 </table>
-              </div>
-            </div>
-
-            <!-- 收益计算器 -->
-            <div class="bg-[#eff6ff] rounded-xl border border-[#bfdbfe] p-6">
-              <div class="flex items-center gap-2 mb-4">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>
-                <span class="text-[14px] font-semibold text-[#1e3a5f]">收益计算器</span>
-                <span class="text-[11px] text-[#64748b]">调整参数体验不同申报量的收益变化</span>
-              </div>
-              <div class="grid grid-cols-2 gap-x-6 gap-y-3 mb-5">
-                <div>
-                  <label class="text-[12px] text-[#64748b] mb-1 block">预测负荷 (MW)</label>
-                  <input v-model.number="calc.forecastLoad" type="number" class="w-full px-3 py-1.5 text-[13px] rounded-lg border border-[#bfdbfe] bg-white focus:outline-none focus:border-[#2563eb]" />
-                </div>
-                <div>
-                  <label class="text-[12px] text-[#64748b] mb-1 block">偏移比例 (%)</label>
-                  <input v-model.number="calc.offsetPct" type="range" min="0" max="30" step="1" class="w-full accent-[#2563eb]" />
-                  <div class="text-[12px] text-[#2563eb] text-center">{{ calc.offsetPct }}%</div>
-                </div>
-                <div>
-                  <label class="text-[12px] text-[#64748b] mb-1 block">合同电价 (元/MWh)</label>
-                  <input v-model.number="calc.contractPrice" type="number" class="w-full px-3 py-1.5 text-[13px] rounded-lg border border-[#bfdbfe] bg-white focus:outline-none focus:border-[#2563eb]" />
-                </div>
-                <div>
-                  <label class="text-[12px] text-[#64748b] mb-1 block">日前电价 (元/MWh)</label>
-                  <input v-model.number="calc.dayAheadPrice" type="number" class="w-full px-3 py-1.5 text-[13px] rounded-lg border border-[#bfdbfe] bg-white focus:outline-none focus:border-[#2563eb]" />
-                </div>
-                <div>
-                  <label class="text-[12px] text-[#64748b] mb-1 block">实时电价 (元/MWh)</label>
-                  <input v-model.number="calc.realtimePrice" type="number" class="w-full px-3 py-1.5 text-[13px] rounded-lg border border-[#bfdbfe] bg-white focus:outline-none focus:border-[#2563eb]" />
-                </div>
-              </div>
-              <div class="bg-white rounded-lg border border-[#bfdbfe] p-4 space-y-2.5">
-                <div class="flex justify-between text-[13px]">
-                  <span class="text-[#64748b]">DART</span>
-                  <span :class="calcResults.dart > 0 ? 'text-[#dc2626]' : 'text-[#0d9488]'">{{ calcResults.dart.toFixed(0) }} 元/MWh ({{ calcResults.direction }})</span>
-                </div>
-                <div class="flex justify-between text-[13px]">
-                  <span class="text-[#64748b]">报量</span>
-                  <span class="text-[#1a2332] font-medium">{{ calcResults.reportQty }} MW</span>
-                </div>
-                <div class="flex justify-between text-[13px]">
-                  <span class="text-[#64748b]">偏差率</span>
-                  <span :class="parseFloat(calcResults.deviationRate) > LAMBDA_0*100 ? 'text-[#dc2626]' : 'text-[#1a2332]'">{{ calcResults.deviationRate }}%{{ parseFloat(calcResults.deviationRate) > LAMBDA_0*100 ? ' (超阈值，有考核)' : '' }}</span>
-                </div>
-                <div class="border-t border-[#e2e8f0] pt-2.5 flex justify-between text-[14px]">
-                  <span class="text-[#64748b] font-medium">策略增量收益</span>
-                  <span class="font-bold" :class="calcResults.incremental >= 0 ? 'text-[#16a34a]' : 'text-[#dc2626]'">{{ calcResults.incrementalStr }}</span>
-                </div>
               </div>
             </div>
           </template>
