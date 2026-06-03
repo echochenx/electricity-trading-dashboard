@@ -402,25 +402,40 @@ const historyStats = computed(() => {
           <!-- 当日报量概况 -->
           <div v-if="dayData.length" class="grid grid-cols-5 gap-3 mb-5">
             <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
-              <div class="text-[11px] text-[#94a3b8] mb-1">DART方向</div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[11px] text-[#94a3b8]">DART方向</span>
+                <span class="cursor-help text-[#cbd5e1] hover:text-[#94a3b8] transition-colors" title="DART=日前电价-实时电价，正值表示日前贵应多报，负值表示实时贵应少报">?</span>
+              </div>
               <div class="text-[14px] font-bold text-[#1a2332]">{{ daySummary.dartDirection }}</div>
               <div class="text-[11px] text-[#94a3b8]">正{{ daySummary.dartPositive }}/负{{ daySummary.dartNegative }}</div>
             </div>
             <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
-              <div class="text-[11px] text-[#94a3b8] mb-1">投票一致度(置信度)</div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[11px] text-[#94a3b8]">投票一致度(置信度)</span>
+                <span class="cursor-help text-[#cbd5e1] hover:text-[#94a3b8] transition-colors" title="3个参考日投票决定偏移方向，投票越一致说明方向越可靠，一致比例即为置信度">?</span>
+              </div>
               <div class="text-[18px] font-bold" :class="daySummary.confidence > 60 ? 'text-[#16a34a]' : 'text-[#ea580c]'">{{ daySummary.confidence }}%</div>
               <div class="text-[11px] text-[#94a3b8]">{{ daySummary.confidence >= 80 ? '高度一致，可大胆偏移' : daySummary.confidence >= 60 ? '方向较一致，适度偏移' : '方向分裂，谨慎为好' }}</div>
             </div>
             <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
-              <div class="text-[11px] text-[#94a3b8] mb-1">日申报电量</div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[11px] text-[#94a3b8]">日申报电量</span>
+                <span class="cursor-help text-[#cbd5e1] hover:text-[#94a3b8] transition-colors" title="售电公司向交易中心申报的负荷量=预测负荷+偏移量，决定日前市场结算基准">?</span>
+              </div>
               <div class="text-[16px] font-bold text-[#2563eb]">{{ daySummary.declaredLoad }}<span class="text-[11px] text-[#94a3b8] ml-1">MW</span></div>
             </div>
             <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
-              <div class="text-[11px] text-[#94a3b8] mb-1">日实际负荷</div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[11px] text-[#94a3b8]">日实际负荷</span>
+                <span class="cursor-help text-[#cbd5e1] hover:text-[#94a3b8] transition-colors" title="实际发生的用电负荷，与申报量的偏差决定偏差考核">?</span>
+              </div>
               <div class="text-[16px] font-bold text-[#0d9488]">{{ daySummary.actualLoad }}<span class="text-[11px] text-[#94a3b8] ml-1">MW</span></div>
             </div>
             <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
-              <div class="text-[11px] text-[#94a3b8] mb-1">平均DART</div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[11px] text-[#94a3b8]">平均DART</span>
+                <span class="cursor-help text-[#cbd5e1] hover:text-[#94a3b8] transition-colors" title="当日24小时DART的均值，正值越大说明日前比实时贵越多，偏移空间越大">?</span>
+              </div>
               <div class="text-[16px] font-bold" :class="daySummary.avgDart >= 0 ? 'text-[#dc2626]' : 'text-[#0d9488]'">{{ daySummary.avgDart }}<span class="text-[11px] text-[#94a3b8] ml-1">元</span></div>
             </div>
           </div>
@@ -516,19 +531,31 @@ const historyStats = computed(() => {
             <!-- 当日汇总卡 -->
             <div class="grid grid-cols-4 gap-4 mb-5">
               <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
-                <div class="text-[11px] text-[#94a3b8] mb-1">毛收益合计</div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[11px] text-[#94a3b8]">毛收益合计</span>
+                  <span class="cursor-help text-[#cbd5e1] hover:text-[#94a3b8] transition-colors" title="(实时电价-日前电价)×(申报负荷-实际负荷)，不考虑偏差考核的原始收益">?</span>
+                </div>
                 <div class="text-[18px] font-bold text-[#16a34a]">{{ dayProfitSummary.totalGross }}<span class="text-[11px] text-[#94a3b8] ml-1">元</span></div>
               </div>
               <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
-                <div class="text-[11px] text-[#94a3b8] mb-1">偏差考核合计</div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[11px] text-[#94a3b8]">偏差考核合计</span>
+                  <span class="cursor-help text-[#cbd5e1] hover:text-[#94a3b8] transition-colors" title="当|申报-实际|/实际>20%时，超出部分收益被回收，是对申报偏差的惩罚">?</span>
+                </div>
                 <div class="text-[18px] font-bold text-[#dc2626]">-{{ dayProfitSummary.totalPenalty }}<span class="text-[11px] text-[#94a3b8] ml-1">元</span></div>
               </div>
               <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
-                <div class="text-[11px] text-[#94a3b8] mb-1">日净收益</div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[11px] text-[#94a3b8]">日净收益</span>
+                  <span class="cursor-help text-[#cbd5e1] hover:text-[#94a3b8] transition-colors" title="毛收益-偏差考核，是售电公司最终到手收益">?</span>
+                </div>
                 <div class="text-[22px] font-bold" :class="dayProfitSummary.totalNet >= 0 ? 'text-[#16a34a]' : 'text-[#dc2626]'">{{ dayProfitSummary.totalNet }}<span class="text-[11px] text-[#94a3b8] ml-1">元</span></div>
               </div>
               <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
-                <div class="text-[11px] text-[#94a3b8] mb-1">盈亏时段</div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[11px] text-[#94a3b8]">盈亏时段</span>
+                  <span class="cursor-help text-[#cbd5e1] hover:text-[#94a3b8] transition-colors" title="24个时段中净收益>0的为盈、<0的为亏">?</span>
+                </div>
                 <div class="text-[16px] font-bold">
                   <span class="text-[#16a34a]">{{ dayProfitSummary.profitH }}盈</span>
                   <span class="text-[#94a3b8] mx-1">/</span>
@@ -596,17 +623,26 @@ const historyStats = computed(() => {
           <!-- 分析指标卡 -->
           <div v-if="historyStats.achievementRate !== undefined" class="grid grid-cols-3 gap-4 mb-5">
             <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
-              <div class="text-[11px] text-[#94a3b8] mb-1">{{ historyMonth }} 收益达成率</div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[11px] text-[#94a3b8]">{{ historyMonth }} 收益达成率</span>
+                <span class="cursor-help text-[#cbd5e1] hover:text-[#94a3b8] transition-colors" title="策略净收益÷理论最优收益，反映策略捕捉价差机会的能力">?</span>
+              </div>
               <div class="text-[20px] font-bold" :class="historyStats.achievementRate >= 0 ? 'text-[#16a34a]' : 'text-[#dc2626]'">{{ historyStats.achievementRate.toFixed(1) }}%</div>
               <div class="text-[11px] text-[#94a3b8]">策略净收益 / 理论最优</div>
             </div>
             <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
-              <div class="text-[11px] text-[#94a3b8] mb-1">{{ historyMonth }} 方向准确率</div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[11px] text-[#94a3b8]">{{ historyMonth }} 方向准确率</span>
+                <span class="cursor-help text-[#cbd5e1] hover:text-[#94a3b8] transition-colors" title="策略预测的偏移方向与实际最优方向一致的比例，>50%说明方向判断有效">?</span>
+              </div>
               <div class="text-[20px] font-bold" :class="historyStats.directionAccuracy >= 55 ? 'text-[#16a34a]' : 'text-[#ea580c]'">{{ historyStats.directionAccuracy.toFixed(1) }}%</div>
               <div class="text-[11px] text-[#94a3b8]">预测方向与最优方向一致</div>
             </div>
             <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
-              <div class="text-[11px] text-[#94a3b8] mb-1">{{ historyMonth }} 盈利天数</div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[11px] text-[#94a3b8]">{{ historyMonth }} 盈利天数</span>
+                <span class="cursor-help text-[#cbd5e1] hover:text-[#94a3b8] transition-colors" title="当月日净收益>0的天数，反映策略的胜率">?</span>
+              </div>
               <div class="text-[20px] font-bold text-[#1a2332]">{{ historyStats.profitDays }}<span class="text-[12px] text-[#94a3b8]"> / {{ historyStats.totalDays }}天</span></div>
               <div class="text-[11px] text-[#94a3b8]">{{ (historyStats.profitDays / historyStats.totalDays * 100).toFixed(0) }}%天盈利</div>
             </div>
