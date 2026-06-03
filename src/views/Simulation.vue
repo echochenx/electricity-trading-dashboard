@@ -260,27 +260,42 @@ const dailyChartOption = computed(() => {
 
           <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-5 mb-5">
             <h4 class="text-[13px] font-semibold text-[#1a2332] mb-3">三层决策架构</h4>
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-3 gap-4 mb-4">
               <div class="bg-white rounded-lg p-3 border border-[#e2e8f0]">
                 <div class="flex items-center gap-2 mb-1.5">
                   <span class="w-5 h-5 rounded-full bg-[#0d9488] text-white text-[10px] font-bold flex items-center justify-center">1</span>
                   <span class="text-[12px] font-semibold">参考日选取</span>
                 </div>
-                <p class="text-[11px] text-[#64748b]">相似日 + special日期范围</p>
+                <p class="text-[11px] text-[#64748b]">7天/4周/1年三组历史相似日加权，special日期范围单独处理</p>
               </div>
               <div class="bg-white rounded-lg p-3 border border-[#e2e8f0]">
                 <div class="flex items-center gap-2 mb-1.5">
                   <span class="w-5 h-5 rounded-full bg-[#2563eb] text-white text-[10px] font-bold flex items-center justify-center">2</span>
-                  <span class="text-[12px] font-semibold">DART方向</span>
+                  <span class="text-[12px] font-semibold">DART方向判断</span>
                 </div>
-                <p class="text-[11px] text-[#64748b]">投票机制 · 置信度{{ daySummary.confidence || '--' }}%</p>
+                <p class="text-[11px] text-[#64748b]">多参考日投票决定方向，一致比例即置信度（当前日{{ daySummary.confidence || '--' }}%）</p>
               </div>
               <div class="bg-white rounded-lg p-3 border border-[#e2e8f0]">
                 <div class="flex items-center gap-2 mb-1.5">
                   <span class="w-5 h-5 rounded-full bg-[#7c3aed] text-white text-[10px] font-bold flex items-center justify-center">3</span>
-                  <span class="text-[12px] font-semibold">偏移量</span>
+                  <span class="text-[12px] font-semibold">负荷预测及偏移量计算</span>
                 </div>
-                <p class="text-[11px] text-[#64748b]">分档scale + lambda叠加</p>
+                <p class="text-[11px] text-[#64748b]">基于预测负荷叠加方向偏移，分档scale × 置信度lambda</p>
+              </div>
+            </div>
+
+            <!-- 策略说明 -->
+            <div class="bg-white rounded-lg border border-[#e2e8f0] p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                <span class="text-[12px] font-semibold text-[#1a2332]">当前售电公司策略说明</span>
+              </div>
+              <div class="text-[11px] text-[#64748b] space-y-1.5 leading-relaxed">
+                <p><strong class="text-[#1a2332]">投票机制</strong>：选取7天前、4周前、1年前三个参考日，计算各自DART方向，多数一致即为预测方向，一致比例为置信度。</p>
+                <p><strong class="text-[#1a2332]">置信度lambda</strong>：方向一致度越高(>0.8)，偏移力度越大；方向分裂(<0.5)则不偏移。实现"确定时进取、不确定时保守"。</p>
+                <p><strong class="text-[#1a2332]">分档scale</strong>：按|DART|大小分5档(5-20元/MWh)，DART越大偏移越大，捕捉大幅价差机会。</p>
+                <p><strong class="text-[#1a2332]">收益口径</strong>：策略收益 = 偏移量 × DART方向 × min(|DART|, 合理上限) - 偏差考核费用。达成率 = 累计策略收益 / 累计理论最大收益。</p>
+                <p class="text-[#ea580c]"><strong>核心教训</strong>：加大偏移力度(scale 1.0→1.1)在方向对时多赚一点，但方向错时多亏更多，净效果为负。优先"减少错误时亏损"而非"增加正确时盈利"。</p>
               </div>
             </div>
           </div>

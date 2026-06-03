@@ -36,8 +36,6 @@ const embeddedCharts = computed(() => {
   const chartMapping = {
     'mshape': ['mshape'],
     'duck': ['duck'],
-    'dart': ['dart'],
-    'profit': ['profit'],
   }
   if (chartMapping[sectionId]) {
     chartIds.push(...chartMapping[sectionId])
@@ -288,9 +286,7 @@ readSections.value.add('0-0')
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                   <span class="text-[13px] font-medium text-[#1a2332]">
                     {{ chartId === 'mshape' ? '24小时负荷曲线（真实数据）' :
-                       chartId === 'duck' ? '总负荷 vs 净负荷（扣光伏）' :
-                       chartId === 'dart' ? '月度DART方向准确率' :
-                       chartId === 'profit' ? '月度收益构成' : '' }}
+                       chartId === 'duck' ? '总负荷 vs 净负荷（扣光伏）' : '' }}
                   </span>
                 </div>
                 <VChart :option="knowledgeCharts[chartId].option" :style="{ height: knowledgeCharts[chartId].height }" autoresize />
