@@ -181,16 +181,32 @@ const dayChartOption = computed(() => ({
     backgroundColor: 'rgba(255,255,255,0.96)',
     borderColor: '#e2e8f0',
     textStyle: { color: '#1a2332', fontSize: 12 },
+    formatter: (params) => {
+      const hour = params[0].axisValue
+      let html = `<div style="font-weight:600;margin-bottom:4px">${hour}</div>`
+      params.forEach(p => {
+        let val
+        if (p.seriesName === 'DART') {
+          val = `${p.value.toFixed(1)} 元/MWh`
+        } else {
+          val = `${p.value.toFixed(0)} 元`
+        }
+        html += `<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${p.color}"></span>${p.seriesName}: ${val}</div>`
+      })
+      return html
+    }
   },
-  legend: { data: ['时段净收益', 'DART'], top: 0, textStyle: { fontSize: 11, color: '#64748b' } },
-  grid: { left: 55, right: 20, top: 36, bottom: 28 },
+  legend: { data: ['毛收益', '偏差考核', '净收益', 'DART'], top: 0, textStyle: { fontSize: 11, color: '#64748b' }, itemWidth: 14, itemHeight: 8 },
+  grid: { left: 55, right: 50, top: 36, bottom: 28 },
   xAxis: { type: 'category', data: dayData.value.map(r => `${r.period}:00`), axisLabel: { fontSize: 10, color: '#94a3b8' }, axisLine: { lineStyle: { color: '#e2e8f0' } } },
   yAxis: [
     { type: 'value', name: '元', nameTextStyle: { fontSize: 10, color: '#94a3b8' }, axisLabel: { fontSize: 10, color: '#94a3b8' }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
     { type: 'value', name: '元/MWh', nameTextStyle: { fontSize: 10, color: '#94a3b8' }, axisLabel: { fontSize: 10, color: '#94a3b8' }, splitLine: { show: false } },
   ],
   series: [
-    { name: '时段净收益', type: 'bar', data: hourlyDetails.value.map(r => r.netProfit), itemStyle: { borderRadius: [3, 3, 0, 0], color: p => p.value >= 0 ? '#16a34a' : '#dc2626' }, barWidth: '50%' },
+    { name: '毛收益', type: 'bar', data: hourlyDetails.value.map(r => r.grossIncome), itemStyle: { color: '#16a34a', borderRadius: [3, 3, 0, 0] }, barWidth: '15%' },
+    { name: '偏差考核', type: 'bar', data: hourlyDetails.value.map(r => -r.devPenalty), itemStyle: { color: '#dc2626', borderRadius: [3, 3, 0, 0] }, barWidth: '15%' },
+    { name: '净收益', type: 'bar', data: hourlyDetails.value.map(r => r.netProfit), itemStyle: { color: '#2563eb', borderRadius: [3, 3, 0, 0] }, barWidth: '15%' },
     { name: 'DART', type: 'line', yAxisIndex: 1, data: dayData.value.map(r => r.price_diff), lineStyle: { width: 1.5, color: '#eab308' }, itemStyle: { color: '#eab308' }, symbol: 'none' },
   ],
 }))
