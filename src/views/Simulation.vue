@@ -698,8 +698,9 @@ const historyStats = computed(() => {
 .tip::after {
   content: attr(data-tip);
   position: absolute;
-  bottom: calc(100% + 6px);
-  right: -4px;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
   width: max-content;
   max-width: 200px;
   padding: 6px 8px;
