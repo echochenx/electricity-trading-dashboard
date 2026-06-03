@@ -78,6 +78,27 @@ export const chartConfigs = [
       ],
     },
   },
+  {
+    key: 'intraday_wknd',
+    title: '工作日vs周末缺口对比',
+    tag: '需求',
+    tagColor: colors.blue,
+    icon: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4',
+    description: '工作日晚高峰缺口更大、更陡峭；周末负荷整体降低，但上午小高峰更明显',
+    height: '280px',
+    option: {
+      tooltip: { trigger: 'axis' },
+      legend: { data: ['工作日负荷', '周末负荷', '工作日缺口', '周末缺口'], top: 5, textStyle: { fontSize: 11, color: '#64748b' } },
+      xAxis: { type: 'category', data: d.intraday_wknd.hours.map(h => `${h}:00`), axisLabel: { fontSize: 10, color: '#94a3b8' }, axisLine: { lineStyle: { color: '#e2e8f0' } } },
+      yAxis: { type: 'value', name: 'MW', nameTextStyle: { fontSize: 10, color: '#94a3b8' }, axisLabel: { fontSize: 10, color: '#94a3b8', formatter: v => (v/1000).toFixed(0) + 'k' }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
+      series: [
+        { name: '工作日负荷', type: 'line', data: d.intraday_wknd.workday_load, smooth: true, lineStyle: { width: 2.5, color: colors.blue }, itemStyle: { color: colors.blue }, symbol: 'none' },
+        { name: '周末负荷', type: 'line', data: d.intraday_wknd.weekend_load, smooth: true, lineStyle: { width: 2.5, color: colors.teal, type: 'dashed' }, itemStyle: { color: colors.teal }, symbol: 'none' },
+        { name: '工作日缺口', type: 'line', data: d.intraday_wknd.workday_gap, smooth: true, lineStyle: { width: 1.5, color: colors.red }, itemStyle: { color: colors.red }, symbol: 'none' },
+        { name: '周末缺口', type: 'line', data: d.intraday_wknd.weekend_gap, smooth: true, lineStyle: { width: 1.5, color: colors.orange, type: 'dashed' }, itemStyle: { color: colors.orange }, symbol: 'none' },
+      ],
+    },
+  },
   // ===== 第二层：供需如何决定价格 =====
   {
     key: 'margin',
@@ -169,6 +190,57 @@ export const chartConfigs = [
     },
   },
   // ===== 第三层：策略相关 =====
+  {
+    key: 'dart_distribution',
+    title: 'DART方向与幅度分布',
+    tag: '策略基础',
+    tagColor: '#7c3aed',
+    icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
+    description: `DART正偏(日前>实时)占${d.dart_distribution.positive_pct}%，是策略偏移的核心机会窗口；大DART(>20元)占比约${Math.round(d.dart_distribution.distribution.counts.slice(-2).reduce((a,b)=>a+b,0) / d.dart_distribution.distribution.counts.reduce((a,b)=>a+b,0) * 100)}%，对应高收益时段`,
+    height: '280px',
+    option: {
+      tooltip: { trigger: 'axis' },
+      legend: { data: ['DART幅度分布', '月度正偏占比'], top: 5, textStyle: { fontSize: 11, color: '#64748b' } },
+      grid: { left: 50, right: 50, top: 40, bottom: 40 },
+      xAxis: [
+        { type: 'category', data: d.dart_distribution.distribution.labels, axisLabel: { fontSize: 9, color: '#94a3b8' }, axisLine: { lineStyle: { color: '#e2e8f0' } }, gridIndex: 0 },
+        { type: 'category', data: d.dart_distribution.monthly.months, axisLabel: { fontSize: 9, color: '#94a3b8', rotate: 30 }, axisLine: { lineStyle: { color: '#e2e8f0' } }, gridIndex: 1, show: false },
+      ],
+      yAxis: [
+        { type: 'value', name: '频次', nameTextStyle: { fontSize: 10, color: '#94a3b8' }, axisLabel: { fontSize: 10, color: '#94a3b8' }, splitLine: { lineStyle: { color: '#f1f5f9' } }, gridIndex: 0 },
+        { type: 'value', name: '%', nameTextStyle: { fontSize: 10, color: '#94a3b8' }, axisLabel: { fontSize: 10, color: '#94a3b8' }, splitLine: { show: false }, min: 30, max: 90, gridIndex: 1 },
+      ],
+      grid: [
+        { left: 50, right: 50, top: 40, bottom: '52%' },
+        { left: 50, right: 50, top: '60%', bottom: 40 },
+      ],
+      series: [
+        {
+          name: 'DART幅度分布', type: 'bar', xAxisIndex: 0, yAxisIndex: 0,
+          data: d.dart_distribution.distribution.counts,
+          itemStyle: {
+            borderRadius: [3, 3, 0, 0],
+            color: (params) => {
+              const mid = d.dart_distribution.distribution.labels.length / 2
+              return params.dataIndex < mid ? colors.red : colors.green
+            },
+          },
+          barWidth: '50%',
+        },
+        {
+          name: '月度正偏占比', type: 'line', xAxisIndex: 1, yAxisIndex: 1,
+          data: d.dart_distribution.monthly.positive_pct,
+          lineStyle: { width: 2, color: colors.blue },
+          itemStyle: { color: colors.blue },
+          symbol: 'circle', symbolSize: 5,
+          markLine: {
+            silent: true,
+            data: [{ yAxis: 50, lineStyle: { color: '#dc262640', type: 'dashed', width: 1 }, label: { show: true, formatter: '50%线', fontSize: 10, color: '#dc262680' } }],
+          },
+        },
+      ],
+    },
+  },
   {
     key: 'error',
     title: '预测误差分布',

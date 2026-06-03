@@ -3,9 +3,9 @@ import ChartCard from '../components/insights/ChartCard.vue'
 import { chartConfigs } from '../components/insights/charts.js'
 
 const sections = [
-  { title: '供需基本面', desc: '谁在发电、谁在用电、缺口从何而来', start: 0, end: 3 },
-  { title: '供需如何决定价格', desc: '缺口大小驱动电价高低，周/月/节节奏各不同', start: 3, end: 7 },
-  { title: '策略基础', desc: '负荷预测能多准，决定了偏移策略的空间', start: 7, end: 8 },
+  { title: '供需基本面', desc: '谁在发电、谁在用电、缺口从何而来', start: 0, end: 4 },
+  { title: '供需如何决定价格', desc: '缺口大小驱动电价高低，周/月/节节奏各不同', start: 4, end: 8 },
+  { title: '策略基础', desc: '价差空间有多大、负荷预测能多准，决定策略的边界', start: 8, end: 10 },
 ]
 </script>
 
