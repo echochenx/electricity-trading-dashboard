@@ -21,14 +21,27 @@ const steps = [
   { label: '历史收益', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' },
 ]
 
-// 选择日期（取有小时数据的日期）
-const availableDays = Object.keys(simData.hourly).sort()
-const selectedDay = ref(availableDays[availableDays.length - 1] || '2026-03-31')
+// 选择日期（月份+日期二级选择）
+const availableMonths = Object.keys(simData.daily).sort()
+const selectedMonth = ref(availableMonths[availableMonths.length - 1] || '2026-03')
+const monthDays = computed(() => {
+  const md = simData.daily[selectedMonth.value]
+  return md ? md.days : []
+})
+const selectedDay = ref(monthDays.value[monthDays.value.length - 1] || '')
+
+// 监听月份切换，自动选该月最后一天
+import { watch } from 'vue'
+watch(selectedMonth, () => {
+  const days = simData.daily[selectedMonth.value]?.days || []
+  selectedDay.value = days[days.length - 1] || ''
+})
+
 const dayData = computed(() => simData.hourly[selectedDay.value] || [])
 
-// 月度数据
-const selectedMonth = ref('2026-03')
-const monthDailyData = computed(() => simData.daily[selectedMonth.value] || { days: [], strategy_profit: [], best_profit: [] })
+// 历史收益Tab的月份选择器
+const historyMonth = ref(availableMonths[availableMonths.length - 1] || '2026-03')
+const monthDailyData = computed(() => simData.daily[historyMonth.value] || { days: [], strategy_profit: [], best_profit: [] })
 
 // === 今日概况 ===
 const daySummary = computed(() => {
@@ -164,7 +177,7 @@ const dailyChartOption = computed(() => {
         </svg>
         模拟交易
       </h1>
-      <p class="text-[14px] text-[#64748b] mt-1 ml-9">以售电公司视角体验电力交易全流程</p>
+      <p class="text-[14px] text-[#64748b] mt-1 ml-9">以某售电公司视角体验电力交易，发电、交易中心、终端用户侧待建设</p>
     </div>
 
     <!-- 角色标签 -->
@@ -172,6 +185,7 @@ const dailyChartOption = computed(() => {
       <span class="px-4 py-2 text-[13px] rounded-lg bg-[#eff6ff] text-[#2563eb] font-semibold border border-[#2563eb]/20">★ 售电公司</span>
       <span class="px-4 py-2 text-[13px] rounded-lg bg-white text-[#cbd5e1] border border-[#e2e8f0]">🔒 发电侧</span>
       <span class="px-4 py-2 text-[13px] rounded-lg bg-white text-[#cbd5e1] border border-[#e2e8f0]">🔒 交易中心</span>
+      <span class="px-4 py-2 text-[13px] rounded-lg bg-white text-[#cbd5e1] border border-[#e2e8f0]">🔒 终端用户</span>
     </div>
 
     <!-- 子步骤导航 -->
@@ -194,8 +208,11 @@ const dailyChartOption = computed(() => {
           <!-- 日期选择 -->
           <div class="flex items-center gap-3 mb-5">
             <label class="text-[13px] text-[#64748b]">选择日期</label>
+            <select v-model="selectedMonth" class="px-3 py-1.5 text-[13px] border border-[#e2e8f0] rounded-lg bg-white text-[#1a2332]">
+              <option v-for="m in availableMonths" :key="m" :value="m">{{ m }}</option>
+            </select>
             <select v-model="selectedDay" class="px-3 py-1.5 text-[13px] border border-[#e2e8f0] rounded-lg bg-white text-[#1a2332]">
-              <option v-for="d in availableDays" :key="d" :value="d">{{ d }}</option>
+              <option v-for="d in monthDays" :key="d" :value="d">{{ d.slice(5) }}</option>
             </select>
           </div>
 
@@ -226,15 +243,18 @@ const dailyChartOption = computed(() => {
 
           <!-- 24h收益图 -->
           <VChart v-if="dayData.length" :option="dayChartOption" style="height: 260px" autoresize />
-          <div v-else class="text-center text-[14px] text-[#94a3b8] py-10">请选择日期查看详情</div>
+          <div v-else class="text-center text-[14px] text-[#94a3b8] py-10">该日期暂无数据</div>
         </div>
 
         <!-- ====== 2. 报量决策 ====== -->
         <div v-else-if="activeStep === 1">
           <div class="flex items-center gap-3 mb-5">
             <label class="text-[13px] text-[#64748b]">选择日期</label>
+            <select v-model="selectedMonth" class="px-3 py-1.5 text-[13px] border border-[#e2e8f0] rounded-lg bg-white text-[#1a2332]">
+              <option v-for="m in availableMonths" :key="m" :value="m">{{ m }}</option>
+            </select>
             <select v-model="selectedDay" class="px-3 py-1.5 text-[13px] border border-[#e2e8f0] rounded-lg bg-white text-[#1a2332]">
-              <option v-for="d in availableDays" :key="d" :value="d">{{ d }}</option>
+              <option v-for="d in monthDays" :key="d" :value="d">{{ d.slice(5) }}</option>
             </select>
           </div>
 
@@ -273,8 +293,11 @@ const dailyChartOption = computed(() => {
         <div v-else-if="activeStep === 2">
           <div class="flex items-center gap-3 mb-5">
             <label class="text-[13px] text-[#64748b]">选择日期</label>
+            <select v-model="selectedMonth" class="px-3 py-1.5 text-[13px] border border-[#e2e8f0] rounded-lg bg-white text-[#1a2332]">
+              <option v-for="m in availableMonths" :key="m" :value="m">{{ m }}</option>
+            </select>
             <select v-model="selectedDay" class="px-3 py-1.5 text-[13px] border border-[#e2e8f0] rounded-lg bg-white text-[#1a2332]">
-              <option v-for="d in availableDays" :key="d" :value="d">{{ d }}</option>
+              <option v-for="d in monthDays" :key="d" :value="d">{{ d.slice(5) }}</option>
             </select>
           </div>
 
@@ -308,8 +331,11 @@ const dailyChartOption = computed(() => {
         <div v-else-if="activeStep === 3">
           <div class="flex items-center gap-3 mb-5">
             <label class="text-[13px] text-[#64748b]">选择日期</label>
+            <select v-model="selectedMonth" class="px-3 py-1.5 text-[13px] border border-[#e2e8f0] rounded-lg bg-white text-[#1a2332]">
+              <option v-for="m in availableMonths" :key="m" :value="m">{{ m }}</option>
+            </select>
             <select v-model="selectedDay" class="px-3 py-1.5 text-[13px] border border-[#e2e8f0] rounded-lg bg-white text-[#1a2332]">
-              <option v-for="d in availableDays" :key="d" :value="d">{{ d }}</option>
+              <option v-for="d in monthDays" :key="d" :value="d">{{ d.slice(5) }}</option>
             </select>
           </div>
 
@@ -346,7 +372,9 @@ const dailyChartOption = computed(() => {
           <div v-if="monthDailyData.days.length" class="mt-6">
             <div class="flex items-center justify-between mb-3">
               <h4 class="text-[14px] font-semibold text-[#1a2332]">月度日收益明细</h4>
-              <span class="text-[12px] text-[#94a3b8]">{{ selectedMonth }}</span>
+              <select v-model="historyMonth" class="px-3 py-1 text-[12px] border border-[#e2e8f0] rounded-lg bg-white text-[#1a2332]">
+                <option v-for="m in availableMonths" :key="m" :value="m">{{ m }}</option>
+              </select>
             </div>
             <VChart :option="dailyChartOption" style="height: 220px" autoresize />
           </div>
