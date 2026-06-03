@@ -196,27 +196,16 @@ export const chartConfigs = [
     tag: '策略基础',
     tagColor: '#7c3aed',
     icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
-    description: `DART正偏(日前>实时)占${d.dart_distribution.positive_pct}%，是策略偏移的核心机会窗口；大DART(>20元)占比约${Math.round(d.dart_distribution.distribution.counts.slice(-2).reduce((a,b)=>a+b,0) / d.dart_distribution.distribution.counts.reduce((a,b)=>a+b,0) * 100)}%，对应高收益时段`,
+    description: `DART正偏(日前>实时)占${d.dart_distribution.positive_pct}%，是策略偏移的核心机会；大DART(>20元/MWh)占比约${Math.round(d.dart_distribution.distribution.counts.slice(-2).reduce((a,b)=>a+b,0) / d.dart_distribution.distribution.counts.reduce((a,b)=>a+b,0) * 100)}%，对应高收益时段`,
     height: '280px',
     option: {
       tooltip: { trigger: 'axis' },
-      legend: { data: ['DART幅度分布', '月度正偏占比'], top: 5, textStyle: { fontSize: 11, color: '#64748b' } },
-      grid: { left: 50, right: 50, top: 40, bottom: 40 },
-      xAxis: [
-        { type: 'category', data: d.dart_distribution.distribution.labels, axisLabel: { fontSize: 9, color: '#94a3b8' }, axisLine: { lineStyle: { color: '#e2e8f0' } }, gridIndex: 0 },
-        { type: 'category', data: d.dart_distribution.monthly.months, axisLabel: { fontSize: 9, color: '#94a3b8', rotate: 30 }, axisLine: { lineStyle: { color: '#e2e8f0' } }, gridIndex: 1, show: false },
-      ],
-      yAxis: [
-        { type: 'value', name: '频次', nameTextStyle: { fontSize: 10, color: '#94a3b8' }, axisLabel: { fontSize: 10, color: '#94a3b8' }, splitLine: { lineStyle: { color: '#f1f5f9' } }, gridIndex: 0 },
-        { type: 'value', name: '%', nameTextStyle: { fontSize: 10, color: '#94a3b8' }, axisLabel: { fontSize: 10, color: '#94a3b8' }, splitLine: { show: false }, min: 30, max: 90, gridIndex: 1 },
-      ],
-      grid: [
-        { left: 50, right: 50, top: 40, bottom: '52%' },
-        { left: 50, right: 50, top: '60%', bottom: 40 },
-      ],
+      grid: { left: 50, right: 20, top: 20, bottom: 40 },
+      xAxis: { type: 'category', data: d.dart_distribution.distribution.labels, axisLabel: { fontSize: 9, color: '#94a3b8' }, axisLine: { lineStyle: { color: '#e2e8f0' } } },
+      yAxis: { type: 'value', name: '频次', nameTextStyle: { fontSize: 10, color: '#94a3b8' }, axisLabel: { fontSize: 10, color: '#94a3b8' }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
       series: [
         {
-          name: 'DART幅度分布', type: 'bar', xAxisIndex: 0, yAxisIndex: 0,
+          name: 'DART幅度分布', type: 'bar',
           data: d.dart_distribution.distribution.counts,
           itemStyle: {
             borderRadius: [3, 3, 0, 0],
@@ -225,18 +214,7 @@ export const chartConfigs = [
               return params.dataIndex < mid ? colors.red : colors.green
             },
           },
-          barWidth: '50%',
-        },
-        {
-          name: '月度正偏占比', type: 'line', xAxisIndex: 1, yAxisIndex: 1,
-          data: d.dart_distribution.monthly.positive_pct,
-          lineStyle: { width: 2, color: colors.blue },
-          itemStyle: { color: colors.blue },
-          symbol: 'circle', symbolSize: 5,
-          markLine: {
-            silent: true,
-            data: [{ yAxis: 50, lineStyle: { color: '#dc262640', type: 'dashed', width: 1 }, label: { show: true, formatter: '50%线', fontSize: 10, color: '#dc262680' } }],
-          },
+          barWidth: '55%',
         },
       ],
     },
