@@ -332,8 +332,9 @@ const historyStats = computed(() => {
       </div>
 
       <div class="p-6">
+        <Transition name="fade" mode="out-in">
         <!-- ====== 1. 报量决策 ====== -->
-        <div v-if="activeStep === 0">
+        <div v-if="activeStep === 0" key="0">
           <!-- 日期选择 -->
           <div class="flex items-center gap-3 mb-5">
             <label class="text-[13px] text-[#64748b]">选择日期</label>
@@ -506,7 +507,7 @@ const historyStats = computed(() => {
         </div>
 
         <!-- ====== 2. 日收益 ====== -->
-        <div v-else-if="activeStep === 1">
+        <div v-else-if="activeStep === 1" key="1">
           <div class="flex items-center gap-3 mb-5">
             <label class="text-[13px] text-[#64748b]">选择日期</label>
             <select v-model="selectedMonth" class="px-3 py-1.5 text-[13px] border border-[#e2e8f0] rounded-lg bg-white text-[#1a2332]">
@@ -580,14 +581,14 @@ const historyStats = computed(() => {
                       <th class="px-2 py-2 text-left text-[#94a3b8] font-medium">时段</th>
                       <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">日前价</th>
                       <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">实时价</th>
-                      <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">DART</th>
+                      <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">DART <span class="tip" data-tip="日前电价-实时电价，正值表示日前贵应多报">?</span></th>
                       <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">申报</th>
                       <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">实际</th>
-                      <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">偏移</th>
-                      <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">毛收益</th>
-                      <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">偏差率</th>
-                      <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">考核</th>
-                      <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">净收益</th>
+                      <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">偏移 <span class="tip" data-tip="申报负荷-实际负荷，正值多报、负值少报">?</span></th>
+                      <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">毛收益 <span class="tip" data-tip="(实时电价-日前电价)×偏移量，不考虑偏差考核">?</span></th>
+                      <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">偏差率 <span class="tip" data-tip="|申报-实际|/实际，超过20%触发偏差考核">?</span></th>
+                      <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">考核 <span class="tip" data-tip="偏差率>20%时，超出部分收益被回收">?</span></th>
+                      <th class="px-2 py-2 text-right text-[#94a3b8] font-medium">净收益 <span class="tip" data-tip="毛收益-偏差考核，售电公司最终到手">?</span></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -613,7 +614,7 @@ const historyStats = computed(() => {
         </div>
 
         <!-- ====== 3. 历史收益 ====== -->
-        <div v-else-if="activeStep === 2">
+        <div v-else-if="activeStep === 2" key="2">
           <!-- 月度收益分解 -->
           <div class="mb-5">
             <h4 class="text-[14px] font-semibold text-[#1a2332] mb-3">月度收益分解</h4>
@@ -659,12 +660,21 @@ const historyStats = computed(() => {
             <VChart :option="dailyChartOption" style="height: 220px" autoresize />
           </div>
         </div>
+        </Transition>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 .tip {
   position: relative;
   display: inline-flex;
@@ -703,7 +713,7 @@ const historyStats = computed(() => {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s;
-  z-index: 50;
+  z-index: 100;
 }
 .tip:hover::after {
   opacity: 1;

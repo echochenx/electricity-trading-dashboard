@@ -8,7 +8,7 @@ import {
   TitleComponent, TooltipComponent, GridComponent,
   LegendComponent, DataZoomComponent, MarkLineComponent
 } from 'echarts/components'
-import backtestData from '../data/backtest_data.json'
+import simData from '../data/simulation_data.json'
 
 use([
   CanvasRenderer, LineChart, BarChart,
@@ -47,10 +47,10 @@ const modules = [
 ]
 
 // 真实统计数据
-const profitMonths = backtestData.achievement_rate.filter(v => v > 0).length
-const maxRate = Math.max(...backtestData.achievement_rate)
-const maxRateMonth = backtestData.months[backtestData.achievement_rate.indexOf(maxRate)]
-const totalProfit = backtestData.strategy_profit.reduce((a, b) => a + b, 0)
+const profitMonths = simData.monthly.achievement_rate.filter(v => v > 0).length
+const maxRate = Math.max(...simData.monthly.achievement_rate)
+const maxRateMonth = simData.monthly.months[simData.monthly.achievement_rate.indexOf(maxRate)]
+const totalProfit = simData.monthly.strategy_profit.reduce((a, b) => a + b, 0)
 
 const stats = [
   { label: '数据周期', value: '15个月', sub: '2025.01 - 2026.03' },
@@ -86,7 +86,7 @@ const chartOption = computed(() => ({
   grid: { left: 50, right: 50, top: 36, bottom: 32 },
   xAxis: {
     type: 'category',
-    data: backtestData.months,
+    data: simData.monthly.months,
     axisLabel: { fontSize: 10, color: '#94a3b8', rotate: 30 },
     axisLine: { lineStyle: { color: '#e2e8f0' } },
   },
@@ -110,7 +110,7 @@ const chartOption = computed(() => ({
     {
       name: '达成率',
       type: 'bar',
-      data: backtestData.achievement_rate,
+      data: simData.monthly.achievement_rate,
       itemStyle: {
         borderRadius: [4, 4, 0, 0],
         color: (params) => params.value >= 0 ? '#2563eb' : '#dc2626',
@@ -120,7 +120,7 @@ const chartOption = computed(() => ({
     {
       name: '方向准确率',
       type: 'line',
-      data: backtestData.direction_accuracy,
+      data: simData.monthly.direction_accuracy,
       smooth: true,
       lineStyle: { width: 2, color: '#0d9488' },
       itemStyle: { color: '#0d9488' },
@@ -135,7 +135,7 @@ const chartOption = computed(() => ({
       name: '策略收益',
       type: 'line',
       yAxisIndex: 1,
-      data: backtestData.strategy_profit,
+      data: simData.monthly.strategy_profit,
       smooth: true,
       lineStyle: { width: 2, color: '#eab308' },
       itemStyle: { color: '#eab308' },
