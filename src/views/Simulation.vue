@@ -37,7 +37,7 @@ const dayData = computed(() => simData.hourly[selectedDay.value] || [])
 
 // 历史收益Tab的月份选择器
 const historyMonth = ref(availableMonths[availableMonths.length - 1] || '2026-03')
-const monthDailyData = computed(() => simData.daily[historyMonth.value] || { days: [], strategy_profit: [], best_profit: [] })
+const monthDailyData = computed(() => simData.daily[historyMonth.value] || { days: [], strategy_profit: [], best_profit: [], gross_profit: [], deviation_penalty: [] })
 
 function round(v, d = 2) { return Math.round(v * 10**d) / 10**d }
 
@@ -138,11 +138,13 @@ const calc = ref({
   dayAheadPrice: 350,
   realtimePrice: 300,
   offsetPct: 20,
+  followDart: true, // true=跟随DART方向, false=反向偏移
 })
 const calcResults = computed(() => {
-  const { forecastLoad, contractPrice, dayAheadPrice, realtimePrice, offsetPct } = calc.value
+  const { forecastLoad, contractPrice, dayAheadPrice, realtimePrice, offsetPct, followDart } = calc.value
   const dart = dayAheadPrice - realtimePrice
-  const direction = dart > 0 ? 1 : -1
+  const dartDir = dart > 0 ? 1 : -1
+  const direction = followDart ? dartDir : -dartDir
   const offset = forecastLoad * (offsetPct / 100) * direction
   const reportQty = forecastLoad + offset
   const actualLoad = forecastLoad
@@ -159,7 +161,7 @@ const calcResults = computed(() => {
   const penalty = deviationRate > LAMBDA_0 ? Math.abs(actualLoad - reportQty) * 50 : 0
   return {
     dart,
-    direction: direction > 0 ? '日前贵(正偏移)' : '实时贵(负偏移)',
+    direction: direction > 0 ? '正偏移(多报)' : '负偏移(少报)',
     offset: offset.toFixed(0),
     reportQty: reportQty.toFixed(0),
     conservativeNet,
@@ -168,6 +170,7 @@ const calcResults = computed(() => {
     incrementalStr: incremental >= 0 ? `+${(incremental/10000).toFixed(2)}万` : `${(incremental/10000).toFixed(2)}万`,
     deviationRate: (deviationRate * 100).toFixed(1),
     penalty,
+    sameAsDart: direction === dartDir,
   }
 })
 
@@ -233,14 +236,30 @@ const monthlyChartOption = computed(() => ({
 const dailyChartOption = computed(() => {
   const md = monthDailyData.value
   return {
-    tooltip: { trigger: 'axis', backgroundColor: 'rgba(255,255,255,0.96)', borderColor: '#e2e8f0', textStyle: { color: '#1a2332', fontSize: 12 } },
-    legend: { data: ['策略收益', '理论最优'], top: 0, textStyle: { fontSize: 11, color: '#64748b' } },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(255,255,255,0.96)',
+      borderColor: '#e2e8f0',
+      textStyle: { color: '#1a2332', fontSize: 12 },
+      formatter: (params) => {
+        const day = params[0].axisValue
+        let html = `<div style="font-weight:600;margin-bottom:4px">${day}</div>`
+        params.forEach(p => {
+          const val = `${(p.value/10000).toFixed(1)}万`
+          html += `<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${p.color}"></span>${p.seriesName}: ${val}</div>`
+        })
+        return html
+      }
+    },
+    legend: { data: ['毛收益', '偏差考核', '策略净收益', '理论最优'], top: 0, textStyle: { fontSize: 11, color: '#64748b' }, itemWidth: 14, itemHeight: 8 },
     grid: { left: 60, right: 20, top: 36, bottom: 28 },
     xAxis: { type: 'category', data: md.days.map(d => d.slice(5)), axisLabel: { fontSize: 10, color: '#94a3b8' }, axisLine: { lineStyle: { color: '#e2e8f0' } } },
-    yAxis: { type: 'value', name: '元', nameTextStyle: { fontSize: 10, color: '#94a3b8' }, axisLabel: { fontSize: 10, color: '#94a3b8' }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
+    yAxis: { type: 'value', name: '元', nameTextStyle: { fontSize: 10, color: '#94a3b8' }, axisLabel: { fontSize: 10, color: '#94a3b8', formatter: v => (v/10000).toFixed(0) + '万' }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
     series: [
-      { name: '策略收益', type: 'bar', data: md.strategy_profit, itemStyle: { borderRadius: [3, 3, 0, 0], color: p => p.value >= 0 ? '#2563eb' : '#dc2626' }, barWidth: '45%' },
-      { name: '理论最优', type: 'line', data: md.best_profit, lineStyle: { width: 1.5, color: '#eab308', type: 'dashed' }, itemStyle: { color: '#eab308' }, symbol: 'none' },
+      { name: '毛收益', type: 'bar', data: md.gross_profit, itemStyle: { color: '#16a34a', borderRadius: [3, 3, 0, 0] }, barWidth: '15%' },
+      { name: '偏差考核', type: 'bar', data: md.deviation_penalty.map(v => -v), itemStyle: { color: '#dc2626', borderRadius: [3, 3, 0, 0] }, barWidth: '15%' },
+      { name: '策略净收益', type: 'bar', data: md.strategy_profit, itemStyle: { color: '#2563eb', borderRadius: [3, 3, 0, 0] }, barWidth: '15%' },
+      { name: '理论最优', type: 'line', data: md.best_profit, lineStyle: { width: 2, color: '#eab308', type: 'dashed' }, itemStyle: { color: '#eab308' }, symbol: 'none' },
     ],
   }
 })
@@ -406,6 +425,13 @@ const historyStats = computed(() => {
                 <input v-model.number="calc.forecastLoad" type="number" class="w-full px-3 py-1.5 text-[13px] rounded-lg border border-[#bfdbfe] bg-white focus:outline-none focus:border-[#2563eb]" />
               </div>
               <div>
+                <label class="text-[12px] text-[#64748b] mb-1 block">偏移方向</label>
+                <div class="flex gap-2">
+                  <button @click="calc.followDart = true" class="flex-1 px-3 py-1.5 text-[12px] rounded-lg border transition-colors" :class="calc.followDart ? 'bg-[#2563eb] text-white border-[#2563eb]' : 'bg-white text-[#64748b] border-[#bfdbfe]'">跟随DART</button>
+                  <button @click="calc.followDart = false" class="flex-1 px-3 py-1.5 text-[12px] rounded-lg border transition-colors" :class="!calc.followDart ? 'bg-[#dc2626] text-white border-[#dc2626]' : 'bg-white text-[#64748b] border-[#bfdbfe]'">反向偏移</button>
+                </div>
+              </div>
+              <div>
                 <label class="text-[12px] text-[#64748b] mb-1 block">偏移比例 (%)</label>
                 <input v-model.number="calc.offsetPct" type="range" min="0" max="30" step="1" class="w-full accent-[#2563eb]" />
                 <div class="text-[12px] text-[#2563eb] text-center">{{ calc.offsetPct }}%</div>
@@ -427,6 +453,10 @@ const historyStats = computed(() => {
               <div class="flex justify-between text-[13px]">
                 <span class="text-[#64748b]">DART</span>
                 <span :class="calcResults.dart > 0 ? 'text-[#dc2626]' : 'text-[#0d9488]'">{{ calcResults.dart.toFixed(0) }} 元/MWh ({{ calcResults.direction }})</span>
+              </div>
+              <div class="flex justify-between text-[13px]">
+                <span class="text-[#64748b]">方向判断</span>
+                <span :class="calcResults.sameAsDart ? 'text-[#16a34a]' : 'text-[#dc2626]'">{{ calcResults.sameAsDart ? '与DART一致，方向正确' : '与DART相反，方向错误' }}</span>
               </div>
               <div class="flex justify-between text-[13px]">
                 <span class="text-[#64748b]">报量</span>
