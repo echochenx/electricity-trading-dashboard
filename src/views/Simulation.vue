@@ -203,20 +203,30 @@ const monthlyChartOption = computed(() => ({
       const m = params[0].axisValue
       let html = `<div style="font-weight:600;margin-bottom:4px">${m}</div>`
       params.forEach(p => {
-        const val = `${(p.value/10000).toFixed(1)}万`
+        let val
+        if (p.seriesName === '收益达成率') {
+          val = `${p.value.toFixed(1)}%`
+        } else {
+          val = `${(p.value/10000).toFixed(1)}万`
+        }
         html += `<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${p.color}"></span>${p.seriesName}: ${val}</div>`
       })
       return html
     }
   },
-  legend: { data: ['毛收益', '偏差考核', '策略净收益'], top: 0, textStyle: { fontSize: 11, color: '#64748b' } },
-  grid: { left: 60, right: 20, top: 36, bottom: 32 },
+  legend: { data: ['毛收益', '偏差考核', '策略净收益', '理论最优', '收益达成率'], top: 0, textStyle: { fontSize: 11, color: '#64748b' }, itemWidth: 14, itemHeight: 8 },
+  grid: { left: 60, right: 50, top: 36, bottom: 32 },
   xAxis: { type: 'category', data: simData.monthly.months, axisLabel: { fontSize: 9, color: '#94a3b8', rotate: 30 }, axisLine: { lineStyle: { color: '#e2e8f0' } } },
-  yAxis: { type: 'value', name: '元', nameTextStyle: { fontSize: 10, color: '#94a3b8' }, axisLabel: { fontSize: 10, color: '#94a3b8', formatter: v => (v/10000).toFixed(0) + '万' }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
+  yAxis: [
+    { type: 'value', name: '元', nameTextStyle: { fontSize: 10, color: '#94a3b8' }, axisLabel: { fontSize: 10, color: '#94a3b8', formatter: v => (v/10000).toFixed(0) + '万' }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
+    { type: 'value', name: '%', nameTextStyle: { fontSize: 10, color: '#94a3b8' }, axisLabel: { fontSize: 10, color: '#94a3b8' }, splitLine: { show: false }, min: -10, max: 70 },
+  ],
   series: [
-    { name: '毛收益', type: 'bar', data: simData.monthly.gross_profit, itemStyle: { color: '#16a34a', borderRadius: [3, 3, 0, 0] }, barWidth: '20%' },
-    { name: '偏差考核', type: 'bar', data: simData.monthly.deviation_penalty.map(v => -v), itemStyle: { color: '#dc2626', borderRadius: [3, 3, 0, 0] }, barWidth: '20%' },
-    { name: '策略净收益', type: 'bar', data: simData.monthly.strategy_profit, itemStyle: { color: '#2563eb', borderRadius: [3, 3, 0, 0] }, barWidth: '20%' },
+    { name: '毛收益', type: 'bar', data: simData.monthly.gross_profit, itemStyle: { color: '#16a34a', borderRadius: [3, 3, 0, 0] }, barWidth: '15%' },
+    { name: '偏差考核', type: 'bar', data: simData.monthly.deviation_penalty.map(v => -v), itemStyle: { color: '#dc2626', borderRadius: [3, 3, 0, 0] }, barWidth: '15%' },
+    { name: '策略净收益', type: 'bar', data: simData.monthly.strategy_profit, itemStyle: { color: '#2563eb', borderRadius: [3, 3, 0, 0] }, barWidth: '15%' },
+    { name: '理论最优', type: 'line', data: simData.monthly.best_profit, lineStyle: { width: 2, color: '#eab308', type: 'dashed' }, itemStyle: { color: '#eab308' }, symbol: 'circle', symbolSize: 5 },
+    { name: '收益达成率', type: 'line', yAxisIndex: 1, data: simData.monthly.achievement_rate, lineStyle: { width: 2, color: '#7c3aed' }, itemStyle: { color: '#7c3aed' }, symbol: 'circle', symbolSize: 5, areaStyle: { color: '#7c3aed10' } },
   ],
 }))
 
@@ -533,23 +543,26 @@ const historyStats = computed(() => {
         <div v-else-if="activeStep === 2">
           <!-- 月度收益分解 -->
           <div class="mb-5">
-            <h4 class="text-[14px] font-semibold text-[#1a2332] mb-3">15个月月度收益分解</h4>
+            <h4 class="text-[14px] font-semibold text-[#1a2332] mb-3">月度收益分解</h4>
             <VChart :option="monthlyChartOption" style="height: 280px" autoresize />
           </div>
 
           <!-- 分析指标卡 -->
           <div v-if="historyStats.achievementRate !== undefined" class="grid grid-cols-3 gap-4 mb-5">
             <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
-              <div class="text-[11px] text-[#94a3b8] mb-1">{{ historyMonth }} 达成率</div>
+              <div class="text-[11px] text-[#94a3b8] mb-1">{{ historyMonth }} 收益达成率</div>
               <div class="text-[20px] font-bold" :class="historyStats.achievementRate >= 0 ? 'text-[#16a34a]' : 'text-[#dc2626]'">{{ historyStats.achievementRate.toFixed(1) }}%</div>
+              <div class="text-[11px] text-[#94a3b8]">策略净收益 / 理论最优</div>
             </div>
             <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
               <div class="text-[11px] text-[#94a3b8] mb-1">{{ historyMonth }} 方向准确率</div>
               <div class="text-[20px] font-bold" :class="historyStats.directionAccuracy >= 55 ? 'text-[#16a34a]' : 'text-[#ea580c]'">{{ historyStats.directionAccuracy.toFixed(1) }}%</div>
+              <div class="text-[11px] text-[#94a3b8]">预测方向与最优方向一致</div>
             </div>
             <div class="bg-[#f8fafc] rounded-xl border border-[#e2e8f0] p-4">
               <div class="text-[11px] text-[#94a3b8] mb-1">{{ historyMonth }} 盈利天数</div>
               <div class="text-[20px] font-bold text-[#1a2332]">{{ historyStats.profitDays }}<span class="text-[12px] text-[#94a3b8]"> / {{ historyStats.totalDays }}天</span></div>
+              <div class="text-[11px] text-[#94a3b8]">{{ (historyStats.profitDays / historyStats.totalDays * 100).toFixed(0) }}%天盈利</div>
             </div>
           </div>
 
